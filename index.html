@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<!-- Create a div where the graph will take place -->
+<div id="my_dataviz"></div>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script>
+
+// set the dimensions and margins of the graph
+var margin = {top: 30, right: 10, bottom: 10, left: 0},
+  width = 500 - margin.left - margin.right,
+  height = 400 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+.append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+.append("g")
+  .attr("transform",
+        "translate(" + margin.left + "," + margin.top + ")");
+
+// Parse the Data
+d3.csv("data:text/txt;base64,TmFtZSxFbmpveW1lbnQsRGlmZmljdWx0eSxRdWFsaXR5IG9mIEluc3RydWN0aW9uLFVzZWZ1bG5lc3MsUGVvcGxlDQpCaW9tZWRpY2FsIEVuZ2luZWVyaW5nIGluIFNjYW5kaW5hdmlhLDIsMyw0LDEsNA0KQ29tcGFyYXRpdmUgRWNvbm9taWNzLDEsMiwyLDEsMjQNCkNvbXBhcmF0aXZlIEVjb25vbWljcywzLDMsNCwzLDI0DQpDb21wYXJhdGl2ZSBFY29ub21pY3MsMyw0LDMsNCwyNA0KRGF0YSBWaXN1YWxpemF0aW9uLDQsNCw0LDQsMTQNCkRhdGEgVmlzdWFsaXphdGlvbiw0LDMsNCwzLDE0DQpEYXRhIFZpc3VhbGl6YXRpb24sMyw0LDMsNCwxNA0KRGF0YSBWaXN1YWxpemF0aW9uLDMsMywzLDMsMTQNCkRhdGEgVmlzdWFsaXphdGlvbiw0LDQsNCw0LDE0DQpEYXRhIFZpc3VhbGl6YXRpb24sNSw1LDQsNSwxNA0KRGF0YSBWaXN1YWxpemF0aW9uLDQsMyw0LDMsMTQNCkRhdGEgVmlzdWFsaXphdGlvbiw0LDQsMyw0LDE0DQpEYXRhIFZpc3VhbGl6YXRpb24sNCwzLDUsNCwxNA0KRGF0YSBWaXN1YWxpemF0aW9uLDQsNCw0LDQsMTQNCkRhdGEgVmlzdWFsaXphdGlvbiwzLDMsMywzLDE0DQpEYXRhIFZpc3VhbGl6YXRpb24sNCwzLDQsNSwxNA0KRGF0YSBWaXN1YWxpemF0aW9uLDMsMywyLDMsMTQNCkRldmVsb3BpbmcgQnJhaW4sNSwzLDQsNSw4DQpEZXZlbG9waW5nIEJyYWluLDUsNSw1LDUsOA0KRWNvbm9taWNzIG9mIEdsb2JhbCBNb25ldGFyeSBQb2xpY2llcyBhbmQgQ2FwaXRhbCBGbG93cyw0LDMsNCw0LDExDQpFbWVyZ2luZyBBZHVsdGhvb2QsNSwzLDUsNSwyMQ0KRW5naW5lZXJpbmcgU3VzdGFpbmFibGUgRW52aXJvbm1lbnRzIGluIFNjYW5kaW5hdmlhLDQsMiw0LDQsOA0KIkdlbmRlciwgRXF1YWxpdHksIGFuZCBTZXh1YWxpdHkgaW4gU2NhbmRpbmF2aWEiLDUsMyw0LDQsMTINCiJHbHVlZCB0byB0aGUgU2NyZWVuOiBUViBTaG93cywgTm9ybXMsIGFuZCBDdWx0dXJlIiw1LDIsNSwzLDE5DQpIaXN0b3J5IG9mIFN3ZWRlbiBpbiBFdXJvcGUgYW5kIHRoZSBXb3JsZCwyLDEsMywzLDIxDQpIaXN0b3J5IG9mIFN3ZWRlbiBpbiBFdXJvcGUgYW5kIHRoZSBXb3JsZCw1LDIsNSw0LDIxDQpIdW1hbiBUcmFmZmlja2luZyBpbiBhIEdsb2JhbCBDb250ZXh0LDQsNSw1LDMsMTcNCkh1bWFuIFRyYWZmaWNraW5nIGluIGEgR2xvYmFsIENvbnRleHQsNCw0LDMsNCwxNw0KTmV1cm9zY2llbmNlIG9mIEVtb3Rpb24sNSw0LDQsNSwxNw0KTmV1cm9zY2llbmNlIG9mIEVtb3Rpb24gTGFiLDQsNSw0LDQsMTcNClBoaWxvc29waHkgb2YgVGVjaG5vbG9neSBhbmQgSHVtYW4gVmFsdWVzLDQsMiw1LDMsMTUNClBob3RvIERvY3VtZW50YXJ5IGFuZCBEaXNjb3ZlcnksNSwyLDQsNCwxMw0KUG9zaXRpdmUgUHN5Y2hvbG9neSwxLDEsMiwyLDI1DQpQb3NpdGl2ZSBQc3ljaG9sb2d5LDUsMiwzLDQsMjUNClBvc2l0aXZlIFBzeWNob2xvZ3ksNCwxLDMsMywyNQ0KUG93ZXIgb2YgdGhlIE1pbmQsMywyLDIsMywyMQ0KUHVibGljIEhlYWx0aCBhbmQgTWlncmF0aW9uLDUsMiw0LDUsMTUNClB1YmxpYyBIZWFsdGggYW5kIE1pZ3JhdGlvbiw1LDUsNSw1LDE1DQpQdWJsaWMgSGVhbHRoIFBvbGljeSBpbiBQcmFjdGljZSwzLDIsNSw1LDE1DQpQdWJsaWMgSGVhbHRoIFBvbGljeSBpbiBQcmFjdGljZSw1LDUsNSw1LDE1DQpSZXNlYXJjaCBBc3Npc3RhbnQ6IElsbGljaXQgT3JnYW4gVHJhZGUsNSw1LDUsNSw0DQpTY2FuZGluYXZpYSBpbiB0aGUgTWlkZGxlIEFnZXMsMiwxLDMsMSwxMg0KU2NhbmRpbmF2aWFuIFRleHRpbGVzIGFuZCBGYXNoaW9uIFdvcmtzaG9wLDQsMiw0LDMsMTcNClNjYW5kaW5hdmlhbiBUZXh0aWxlcyBhbmQgRmFzaGlvbiBXb3Jrc2hvcCw1LDMsNCwzLDE3DQpTY2FuZGluYXZpYW4gVGV4dGlsZXMgYW5kIEZhc2hpb24gV29ya3Nob3AsMiwxLDIsMiwxNw0KU2NhbmRpbmF2aWFuIFRleHRpbGVzIGFuZCBGYXNoaW9uIFdvcmtzaG9wLDUsMiw1LDUsMTcNClNjYW5kaW5hdmlhbiBUZXh0aWxlcyBhbmQgRmFzaGlvbiBXb3Jrc2hvcCw1LDMsNSwzLDE3DQpTbWFydCBhbmQgU3VzdGFpbmFibGUgQ2l0aWVzLDIsMSwxLDIsMTkNClN0b3J5dGVsbGluZyBXb3Jrc2hvcDogSG93IE5hcnJhdGl2ZSBXb3Jrcyw0LDEsMywyLDE1DQpTd2VkaXNoIExhbmd1YWdlIGFuZCBDdWx0dXJlIEksMiwxLDEsMSwxNw0KU3dlZGlzaCBMYW5ndWFnZSBhbmQgQ3VsdHVyZSBJLDIsNSwxLDIsMTcNClN3ZWRpc2ggTGFuZ3VhZ2UgYW5kIEN1bHR1cmUgSSw0LDMsNCw0LDE4DQpTd2VkaXNoIExhbmd1YWdlIGFuZCBDdWx0dXJlIEksMiw0LDIsMSwzMA0KU3dlZGlzaCBMYW5ndWFnZSBhbmQgQ3VsdHVyZSBJLDUsMyw0LDQsNg0KU3dlZGlzaCBMYW5ndWFnZSBhbmQgQ3VsdHVyZSBJLDIsNCw0LDEsMTgNClN3ZWRpc2ggTGFuZ3VhZ2UgYW5kIEN1bHR1cmUgSSwxLDIsMSwxLDE3DQpTd2VkaXNoIExhbmd1YWdlIGFuZCBDdWx0dXJlIEksMiwzLDIsNCwxNw0KU3dlZGlzaCBMYW5ndWFnZSBhbmQgQ3VsdHVyZSBJLDIsMiwxLDEsMTcNClN3ZWRpc2ggTGFuZ3VhZ2UgYW5kIEN1bHR1cmUgSSw0LDMsNCwyLDE4DQpTd2VkaXNoIFBvbGl0aWNzIGFuZCBTb2NpZXR5LDQsMywzLDIsMTkNClRyYW5zZ2VuZGVyIGluIFNjYW5kaW5hdmlhLDMsMiw0LDMsNg0KVHJhbnNnZW5kZXIgaW4gU2NhbmRpbmF2aWEsNSwyLDQsMyw2DQpXb3JsZCBPZiBWaWtpbmdzLDUsMiw0LDQsMjU=", function(data) {
+
+  // Extract the list of dimensions we want to keep in the plot. Here I keep all except the column called Species
+  dimensions = d3.keys(data[0]).filter(function(d) { return d != "Name"})
+
+  var color = d3.scaleOrdinal()
+    .domain(data)
+    .range(d3.schemeSet3)
+
+  // For each dimension, I build a linear scale. I store all in a y object
+  var y = {}
+  for (i in dimensions) {
+    name = dimensions[i]
+    y[name] = d3.scaleLinear()
+      .domain( d3.extent(data, function(d) { return +d[name]; }) )
+      .range([height, 0])
+  }
+
+  // Build the X scale -> it find the best position for each Y axis
+  x = d3.scalePoint()
+    .range([0, width])
+    .padding(1)
+    .domain(dimensions);
+
+  var highlight = function(d){
+
+    selected_specie = d.Name
+
+    // first every group turns grey
+    d3.selectAll(".line")
+      .transition().duration(200)
+      .style("stroke", "lightgrey")
+      .style("opacity", "0.2")
+    // Second the hovered specie takes its color
+    d3.selectAll(".line")
+      .transition().duration(200)
+      .style("stroke", color(selected_specie))
+      .style("opacity", "1")
+  }
+
+   var doNotHighlight = function(d){
+    d3.selectAll(".line")
+      .transition().duration(200).delay(1000)
+      .style("stroke", function(d){ return( color(d.Name))} )
+      .style("opacity", "1")
+  }
+
+  // The path function take a row of the csv as input, and return x and y coordinates of the line to draw for this raw.
+  function path(d) {
+      return d3.line()(dimensions.map(function(p) { return [x(p), y[p](d[p])]; }));
+  }
+
+  // Draw the lines
+  svg
+    .selectAll("myPath")
+    .data(data)
+    .enter().append("path")
+        .attr("class", function (d) { return "line " + d.Name } )
+        .attr("d",  path)
+        .style("fill", "none" )
+        //.style("stroke", "steelblue")
+        .style("stroke", function(d){ return( color(d.Name))} )
+        .style("opacity", 1)
+        .on("mouseover", highlight)
+        .on("mouseleave", doNotHighlight )
+
+
+  // Draw the axis:
+  svg.selectAll("myAxis")
+    // For each dimension of the dataset I add a 'g' element:
+    .data(dimensions).enter()
+    .append("g")
+    // I translate this element to its right position on the x axis
+    .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
+    // And I build the axis with the call function
+    .each(function(d) { d3.select(this).call(d3.axisLeft().scale(y[d])); })
+    // Add axis title
+    .append("text")
+      .style("text-anchor", "middle")
+      .attr("y", -9)
+      .text(function(d) { return d; })
+      .style("fill", "black")
+
+})
+
+
+</script>
